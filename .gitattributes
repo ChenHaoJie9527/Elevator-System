@@ -1,0 +1,17 @@
+# Git 属性配置
+
+# 排除 .claude/ 目录下的文件，不参与 GitHub 语言统计
+.claude/** linguist-vendored
+
+# 也可以排除文档目录（如果创建了 docs/）
+# docs/** linguist-documentation
+
+# 标记项目的主要语言
+*.ts linguist-detectable=true
+*.tsx linguist-detectable=true
+*.js linguist-detectable=true
+*.jsx linguist-detectable=true
+
+# 排除配置文件的语言统计
+*.json linguist-detectable=false
+*.md linguist-detectable=false
