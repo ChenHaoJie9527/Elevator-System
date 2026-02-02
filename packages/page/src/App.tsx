@@ -75,55 +75,6 @@ function App() {
             </div>
           </div>
         </div>
-
-        {/* 底部说明 */}
-        <div className="mt-8 bg-white rounded-lg shadow-lg p-6">
-          <h2 className="text-xl font-bold mb-4">项目架构说明</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
-            <div>
-              <h3 className="font-semibold mb-2 text-blue-500">📦 Monorepo 结构</h3>
-              <ul className="space-y-1 text-muted-foreground">
-                <li>
-                  • <code>packages/core</code> - 核心电梯系统库
-                </li>
-                <li>
-                  • <code>packages/page</code> - Web 前端演示应用
-                </li>
-                <li>• 使用 pnpm workspace 管理</li>
-                <li>• 模块化、可复用、易维护</li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-2 text-purple-500">🎯 技术栈</h3>
-              <ul className="space-y-1 text-muted-foreground">
-                <li>• TypeScript - 类型安全</li>
-                <li>• React 19 - 现代前端框架</li>
-                <li>• Vite - 快速构建工具</li>
-                <li>• Tailwind CSS 4 - 原子化样式</li>
-                <li>• Ant Design 6 - 企业级 UI 组件库</li>
-                <li>• Biome - 代码格式化与检查</li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-2 text-green-500">🏗️ 设计模式</h3>
-              <ul className="space-y-1 text-muted-foreground">
-                <li>• 抽象工厂模式 - 电梯创建</li>
-                <li>• 策略模式 - 智能调度</li>
-                <li>• 观察者模式 - 状态更新</li>
-                <li>• 模板方法模式 - 钩子函数</li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-2 text-orange-500">💡 学习价值</h3>
-              <ul className="space-y-1 text-muted-foreground">
-                <li>• OOP 四大核心思想完整展示</li>
-                <li>• TypeScript 最佳实践</li>
-                <li>• 现代前端开发流程</li>
-                <li>• Monorepo 项目管理</li>
-              </ul>
-            </div>
-          </div>
-        </div>
       </main>
 
       {/* 页脚 */}
