@@ -10,8 +10,8 @@ interface ControlPanelProps {
 }
 
 export function ControlPanel({ controller, maxFloor, minFloor }: ControlPanelProps) {
-  const [fromFloor, setFromFloor] = useState(1);
-  const [toFloor, setToFloor] = useState(10);
+  const [fromFloor, setFromFloor] = useState(-2); // 默认从地下停车场出发
+  const [toFloor, setToFloor] = useState(1); // 默认到大堂
   const [priority, setPriority] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
 
@@ -41,17 +41,25 @@ export function ControlPanel({ controller, maxFloor, minFloor }: ControlPanelPro
     try {
       switch (scenario) {
         case 'morning':
-          await controller.callElevator(1, 10, 0);
+          // 早高峰：从地下停车场和大堂到不同楼层
+          await controller.callElevator(-2, 10, 0);
           await new Promise((resolve) => setTimeout(resolve, 1000));
-          await controller.callElevator(1, 15, 0);
+          await controller.callElevator(-1, 15, 0);
           await new Promise((resolve) => setTimeout(resolve, 1000));
           await controller.callElevator(1, 20, 0);
           break;
         case 'vip':
-          await controller.callElevator(1, 25, 2);
+          await controller.callElevator(1, 20, 2);
           break;
         case 'freight':
-          await controller.callElevator(1, 10, 0);
+          // 货运：从地下停车场运货
+          await controller.callElevator(-2, 10, 0);
+          break;
+        case 'parking':
+          // 停车场往返场景
+          await controller.callElevator(1, -2, 0);
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+          await controller.callElevator(-2, 1, 0);
           break;
         default:
           break;
@@ -63,8 +71,16 @@ export function ControlPanel({ controller, maxFloor, minFloor }: ControlPanelPro
     }
   };
 
+  // 格式化楼层显示：负数楼层显示为 B1, B2
+  const formatFloor = (floor: number): string => {
+    if (floor < 0) {
+      return `B${Math.abs(floor)}`;
+    }
+    return `${floor}F`;
+  };
+
   const floors = Array.from({ length: maxFloor - minFloor + 1 }, (_, i) => minFloor + i).reverse();
-  const floorOptions = floors.map((floor) => ({ label: `${floor}F`, value: floor }));
+  const floorOptions = floors.map((floor) => ({ label: formatFloor(floor), value: floor }));
 
   const tabItems = [
     {
@@ -206,7 +222,23 @@ export function ControlPanel({ controller, maxFloor, minFloor }: ControlPanelPro
               <span className="text-2xl">📦</span>
               <div>
                 <div className="font-semibold">货物运输场景</div>
-                <div className="text-xs text-gray-600">使用货运电梯运输</div>
+                <div className="text-xs text-gray-600">从地下停车场运货到楼层</div>
+              </div>
+            </div>
+          </Button>
+
+          <Button
+            block
+            size="large"
+            onClick={() => handleQuickScenario('parking')}
+            disabled={isRunning}
+            className="text-left"
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">🅿️</span>
+              <div>
+                <div className="font-semibold">停车场往返场景</div>
+                <div className="text-xs text-gray-600">大堂往返地下停车场</div>
               </div>
             </div>
           </Button>

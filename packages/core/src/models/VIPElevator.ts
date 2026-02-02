@@ -17,13 +17,13 @@ export class VIPElevator extends BaseElevator implements IAccessControl {
       name: 'VIP 电梯',
       icon: '👑',
       maxFloor,
-      minFloor: 1,
+      minFloor: -2,
       speed: 1500,
       capacity: 6,
       maxWeight: 500,
       doorTime: 400,
       color: 'bg-yellow-500',
-      description: '速度快，仅限VIP使用，配备身份认证',
+      description: '速度快，仅限VIP使用，配备身份认证（含专属停车位）',
     };
     super(config);
   }

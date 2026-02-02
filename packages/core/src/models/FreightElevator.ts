@@ -16,13 +16,13 @@ export class FreightElevator extends BaseElevator {
       name: '货运电梯',
       icon: '📦',
       maxFloor,
-      minFloor: -1,
+      minFloor: -2,
       speed: 3500,
       capacity: 3,
       maxWeight: 3000,
       doorTime: 1000,
       color: 'bg-orange-500',
-      description: '速度慢，承重大，适合运输货物',
+      description: '速度慢，承重大，适合运输货物（可达地下停车场）',
     };
     super(config);
     this.maxItemSize = 10; // 最大货物尺寸（立方米）

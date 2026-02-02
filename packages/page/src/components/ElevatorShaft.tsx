@@ -29,7 +29,8 @@ export function ElevatorShaft({ elevator, maxFloor, minFloor }: ElevatorShaftPro
   }, [elevator]);
 
   const totalFloors = maxFloor - minFloor + 1;
-  const floorPosition = ((maxFloor - currentFloor) / (totalFloors - 1)) * 100;
+  // 修复：正确计算电梯轿厢位置（从 minFloor 到 maxFloor 的相对位置）
+  const floorPosition = maxFloor - currentFloor;
 
   const getStateIcon = () => {
     switch (state) {
@@ -60,6 +61,14 @@ export function ElevatorShaft({ elevator, maxFloor, minFloor }: ElevatorShaftPro
 
   const isDoorOpen = doorState === DoorState.OPEN || doorState === DoorState.OPENING;
 
+  // 格式化楼层显示：负数楼层显示为 B1, B2
+  const formatFloor = (floor: number): string => {
+    if (floor < 0) {
+      return `B${Math.abs(floor)}`;
+    }
+    return `${floor}F`;
+  };
+
   const tooltipContent = (
     <div className="space-y-2">
       <div>
@@ -82,13 +91,17 @@ export function ElevatorShaft({ elevator, maxFloor, minFloor }: ElevatorShaftPro
         <div>
           <div className="text-gray-300">服务楼层</div>
           <div>
-            {config.minFloor}-{config.maxFloor}F
+            {formatFloor(config.minFloor)} - {config.maxFloor}F
           </div>
         </div>
         <div>
           <div className="text-gray-300">当前状态</div>
-          <div>{getStateText(state)}</div>
+          <div className={clsx(state === ElevatorState.EMERGENCY && 'text-red-500 font-bold')}>
+            {getStateText(state)}
+          </div>
         </div>
+        <div className="text-gray-300">门状态：</div>
+        <div>{getDoorStateText(doorState)}</div>
       </div>
     </div>
   );
@@ -121,7 +134,7 @@ export function ElevatorShaft({ elevator, maxFloor, minFloor }: ElevatorShaftPro
               className="absolute left-0 w-full flex items-center justify-between px-2 text-xs text-gray-500"
               style={{ top: `${i * 60}px` }}
             >
-              <span className="font-mono">{floor}F</span>
+              <span className="font-mono">{formatFloor(floor)}</span>
               <div className="flex-1 border-b border-dashed border-gray-300 mx-2" />
             </div>
           );
@@ -135,7 +148,7 @@ export function ElevatorShaft({ elevator, maxFloor, minFloor }: ElevatorShaftPro
             'flex items-center justify-center text-white font-bold'
           )}
           style={{
-            top: `${(floorPosition * (totalFloors - 1) * 60) / 100 + 3}px`,
+            top: `${floorPosition * 60 + 3}px`,
           }}
         >
           <div className="relative w-full h-full flex items-center justify-center">
@@ -157,26 +170,10 @@ export function ElevatorShaft({ elevator, maxFloor, minFloor }: ElevatorShaftPro
 
             {/* 楼层显示和状态图标 */}
             <div className="relative z-10 flex items-center gap-2">
-              <span className="text-lg">{currentFloor}</span>
+              <span className="text-lg">{formatFloor(currentFloor)}</span>
               {getStateIcon()}
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* 状态信息 */}
-      <div className="mt-4 text-center space-y-1">
-        <div className="text-xs">
-          <span className="font-semibold">状态：</span>
-          <span
-            className={clsx('ml-1', state === ElevatorState.EMERGENCY && 'text-red-500 font-bold')}
-          >
-            {getStateText(state)}
-          </span>
-        </div>
-        <div className="text-xs">
-          <span className="font-semibold">门：</span>
-          <span className="ml-1">{getDoorStateText(doorState)}</span>
         </div>
       </div>
     </div>

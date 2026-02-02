@@ -17,13 +17,13 @@ export class SmartElevator extends BaseElevator {
       name: '智能电梯',
       icon: '🤖',
       maxFloor,
-      minFloor: 1,
+      minFloor: -2,
       speed: 1800,
       capacity: 12,
       maxWeight: 1000,
       doorTime: 450,
       color: 'bg-green-500',
-      description: '智能调度，自动学习，优化运行效率',
+      description: '智能调度，自动学习，优化运行效率（全楼层智能服务）',
     };
     super(config);
     this.initializeLearning();
@@ -36,6 +36,8 @@ export class SmartElevator extends BaseElevator {
   // 初始化学习数据
   private initializeLearning(): void {
     // 假设一些常用楼层
+    this.learningData.set(-2, 60); // 地下二层停车场
+    this.learningData.set(-1, 70); // 地下一层停车场
     this.learningData.set(1, 100); // 大堂最常用
     this.learningData.set(10, 50);
     this.learningData.set(15, 30);

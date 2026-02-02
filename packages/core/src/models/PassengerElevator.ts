@@ -14,13 +14,13 @@ export class PassengerElevator extends BaseElevator {
       name: '普通客梯',
       icon: '🏢',
       maxFloor,
-      minFloor: 1,
+      minFloor: -2,
       speed: 2000,
       capacity: 10,
       maxWeight: 800,
       doorTime: 500,
       color: 'bg-blue-500',
-      description: '速度适中，承重一般，服务所有楼层',
+      description: '速度适中，承重一般，服务所有楼层（含地下停车场）',
     };
     super(config);
   }

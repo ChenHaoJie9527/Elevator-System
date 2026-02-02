@@ -8,6 +8,7 @@ import { BaseElevator } from './BaseElevator.js';
 
 export class ScenicElevator extends BaseElevator {
   private readonly scenicFloors: number[];
+  private lightingEnabled: boolean = true;
 
   constructor(id: string, maxFloor: number = 30, scenicFloors: number[] = []) {
     const config: ElevatorConfig = {
@@ -16,13 +17,13 @@ export class ScenicElevator extends BaseElevator {
       name: '观光电梯',
       icon: '🎡',
       maxFloor,
-      minFloor: 1,
+      minFloor: -2,
       speed: 2500,
       capacity: 8,
       maxWeight: 600,
       doorTime: 600,
       color: 'bg-purple-500',
-      description: '速度缓慢，可欣赏风景，配备特殊照明',
+      description: '速度缓慢，可欣赏风景，配备特殊照明（全楼层服务）',
     };
     super(config);
     this.scenicFloors = scenicFloors;
@@ -42,9 +43,14 @@ export class ScenicElevator extends BaseElevator {
     return this.scenicFloors.includes(floor);
   }
 
+  // 获取照明状态
+  getLightingEnabled(): boolean {
+    return this.lightingEnabled;
+  }
+
   protected async onMoving(currentFloor: number): Promise<void> {
     // 在观景楼层可以放慢速度
-    if (this.isScenicFloor(currentFloor)) {
+    if (this.isScenicFloor(currentFloor) && this.lightingEnabled) {
       await this.delay(500); // 额外停留时间欣赏风景
     }
   }

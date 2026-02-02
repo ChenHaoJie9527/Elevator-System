@@ -50,13 +50,13 @@ function App() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* 左侧：控制面板 */}
           <div className="lg:col-span-1">
-            <ControlPanel controller={controller} maxFloor={20} minFloor={1} />
+            <ControlPanel controller={controller} maxFloor={20} minFloor={-2} />
           </div>
 
           {/* 右侧：电梯井道展示 */}
           <div className="lg:col-span-2">
             <div className="bg-white rounded-lg shadow-lg p-6">
-              <h2 className="text-xl font-bold mb-6">电梯井道实时视图</h2>
+              <h2 className="text-xl font-bold mb-6">电梯井道实时视图（含地下停车场）</h2>
 
               {elevators.length === 0 ? (
                 <div className="text-center py-12 text-muted-foreground">正在初始化电梯系统...</div>
@@ -67,7 +67,7 @@ function App() {
                       key={elevator.getConfig().id}
                       elevator={elevator}
                       maxFloor={20}
-                      minFloor={1}
+                      minFloor={-2}
                     />
                   ))}
                 </div>
