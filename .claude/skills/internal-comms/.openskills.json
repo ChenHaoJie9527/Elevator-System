@@ -1,0 +1,7 @@
+{
+  "source": "anthropics/skills",
+  "sourceType": "git",
+  "repoUrl": "https://github.com/anthropics/skills",
+  "subpath": "skills\\internal-comms",
+  "installedAt": "2026-02-02T02:15:29.200Z"
+}

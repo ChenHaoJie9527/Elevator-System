@@ -1,0 +1,32 @@
+{
+  "name": "@elevator-system/core",
+  "version": "1.0.0",
+  "description": "智能电梯系统核心库 - OOP 设计模式展示",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rimraf dist"
+  },
+  "keywords": [
+    "elevator",
+    "oop",
+    "typescript",
+    "design-pattern"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "rimraf": "^5.0.5"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "name": "elevator-system",
+  "version": "1.2.0",
+  "description": "基于TypeScript的智能电梯系统 - OOP思想演示 (Monorepo)",
+  "private": true,
+  "scripts": {
+    "build": "pnpm -r build",
+    "build:core": "pnpm --filter @elevator-system/core build",
+    "dev": "pnpm --filter @elevator-system/page dev",
+    "build:page": "pnpm --filter @elevator-system/page build",
+    "preview": "pnpm --filter @elevator-system/page preview",
+    "lint": "biome check packages",
+    "lint:fix": "biome check --write packages",
+    "format": "biome format --write packages"
+  },
+  "keywords": [
+    "OOP",
+    "TypeScript",
+    "Elevator",
+    "Design Pattern",
+    "Monorepo",
+    "React",
+    "教学演示"
+  ],
+  "author": "Manus AI",
+  "license": "MIT",
+  "devDependencies": {
+    "@biomejs/biome": "2.3.13",
+    "@types/node": "^20.0.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.0.0"
+  }
+}
