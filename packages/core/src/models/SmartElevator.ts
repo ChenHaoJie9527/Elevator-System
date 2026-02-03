@@ -18,10 +18,11 @@ export class SmartElevator extends BaseElevator {
       icon: '🤖',
       maxFloor,
       minFloor: -2,
-      speed: 1800,
-      capacity: 12,
-      maxWeight: 1000,
-      doorTime: 450,
+      speed: 1800, // 移动速度：1800毫秒/层（智能电梯速度较快）
+      capacity: 12, // 最大载客量：12人（智能电梯容量大）
+      maxWeight: 1000, // 最大承重：1000kg
+      doorTime: 450, // 开关门动作时间：450毫秒（智能电梯门控制精准）
+      doorOpenTime: 5000, // 门保持打开时间：5000毫秒（5秒）- 标准时间，未来可根据AI学习动态调整
       color: 'bg-green-500',
       description: '智能调度，自动学习，优化运行效率（全楼层智能服务）',
     };

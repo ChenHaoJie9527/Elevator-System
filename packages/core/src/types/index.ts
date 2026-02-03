@@ -35,7 +35,8 @@ export interface ElevatorConfig {
   speed: number; // 移动速度（毫秒/层）
   capacity: number; // 最大载客量
   maxWeight: number; // 最大承重（kg）
-  doorTime: number; // 开关门时间（毫秒）
+  doorTime: number; // 开关门动作时间（毫秒）- 门从关闭到完全打开/从打开到完全关闭的时间
+  doorOpenTime: number; // 门保持打开的时间（毫秒）- 到达楼层后门打开状态的停留时间，超时后自动关门
   color?: string; // UI 颜色（可选）
   description?: string; // 描述（可选）
 }

@@ -18,10 +18,11 @@ export class VIPElevator extends BaseElevator implements IAccessControl {
       icon: '👑',
       maxFloor,
       minFloor: -2,
-      speed: 1500,
-      capacity: 6,
-      maxWeight: 500,
-      doorTime: 400,
+      speed: 1500, // 移动速度：1500毫秒/层（VIP电梯速度快）
+      capacity: 6, // 最大载客量：6人（VIP电梯较小但舒适）
+      maxWeight: 500, // 最大承重：500kg
+      doorTime: 400, // 开关门动作时间：400毫秒（VIP电梯门控制精准快速）
+      doorOpenTime: 6000, // 门保持打开时间：6000毫秒（6秒）- VIP用户享受更从容的进出时间
       color: 'bg-yellow-500',
       description: '速度快，仅限VIP使用，配备身份认证（含专属停车位）',
     };

@@ -17,10 +17,11 @@ export class FreightElevator extends BaseElevator {
       icon: '📦',
       maxFloor,
       minFloor: -2,
-      speed: 3500,
-      capacity: 3,
-      maxWeight: 3000,
-      doorTime: 1000,
+      speed: 3500, // 移动速度：3500毫秒/层（较慢，因为承重大）
+      capacity: 3, // 最大载客量：3人
+      maxWeight: 3000, // 最大承重：3000kg（货运电梯承重大）
+      doorTime: 1000, // 开关门动作时间：1000毫秒（货运电梯门较大，开关门慢）
+      doorOpenTime: 8000, // 门保持打开时间：8000毫秒（8秒）- 货运电梯需要更长时间装卸货物
       color: 'bg-orange-500',
       description: '速度慢，承重大，适合运输货物（可达地下停车场）',
     };

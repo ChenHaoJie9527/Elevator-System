@@ -32,10 +32,11 @@ export class ScenicElevator extends BaseElevator {
       icon: '🎡',
       maxFloor,
       minFloor: -2,
-      speed: 2500,
-      capacity: 8,
-      maxWeight: 600,
-      doorTime: 600,
+      speed: 2500, // 移动速度：2500毫秒/层（观光电梯速度适中，让乘客欣赏风景）
+      capacity: 8, // 最大载客量：8人
+      maxWeight: 600, // 最大承重：600kg
+      doorTime: 600, // 开关门动作时间：600毫秒（观光电梯通常是玻璃门，开关门稍慢）
+      doorOpenTime: 7000, // 门保持打开时间：7000毫秒（7秒）- 给乘客更多时间拍照和欣赏景色
       color: 'bg-purple-500',
       description: '速度缓慢，可欣赏风景，配备特殊照明（全楼层服务）',
     };

@@ -104,63 +104,100 @@ export abstract class BaseElevator implements IElevator {
 
   /**
    * 移动到指定楼层
+   * 完整的电梯运行流程：
+   * 1. 验证目标楼层是否有效
+   * 2. 如果已在目标楼层，直接返回
+   * 3. 关闭电梯门
+   * 4. 移动到目标楼层（逐层移动）
+   * 5. 到达后打开电梯门
+   * 6. 门保持打开状态一段时间（让乘客进出）
+   * 7. 自动关闭电梯门
+   * 
    * @param floor 目标楼层
-   * @returns 移动到指定楼层的 Promise
+   * @returns 移动到指定楼层的 Promise，完成整个流程后 resolve
    */
   async moveTo(floor: number): Promise<void> {
-    // 验证楼层
+    // ==================== 第一步：验证楼层 ====================
+    // 检查目标楼层是否在有效范围内（最低楼层 ~ 最高楼层）
     if (floor < this.config.minFloor || floor > this.config.maxFloor) {
       throw new Error(
         `Invalid floor: ${floor}. Must be between ${this.config.minFloor} and ${this.config.maxFloor}`
       );
     }
 
+    // ==================== 第二步：检查是否已在目标楼层 ====================
+    // 如果电梯已经在目标楼层，不需要移动，直接返回
     if (floor === this.status.currentFloor) {
       return;
     }
 
-    // 关门
+    // ==================== 第三步：关门准备移动 ====================
+    // 移动前必须先关闭电梯门，确保安全
     await this.closeDoor();
 
-    // 设置目标楼层和状态
+    // ==================== 第四步：设置电梯状态 ====================
+    // 记录目标楼层
     this.status.targetFloor = floor;
+    // 标记电梯正在移动
     this.status.isMoving = true;
+    // 根据移动方向设置状态：向上或向下
     this.status.state =
       floor > this.status.currentFloor ? ElevatorState.MOVING_UP : ElevatorState.MOVING_DOWN;
 
-    // 移动前钩子
+    // ==================== 第五步：调用移动前钩子 ====================
+    // 子类可以重写此方法，在移动前执行自定义逻辑
+    // 例如：播放语音提示、记录日志等
     await this.beforeMove(floor);
 
-    // 模拟移动
+    // ==================== 第六步：执行移动 ====================
+    // 计算需要移动的楼层数（绝对值）
     const distance = Math.abs(floor - this.status.currentFloor);
-    /**
-     * 如果目标楼层大于当前楼层，方向为 1，否则为 -1
-     */
+
+    // 确定移动方向：向上为 1，向下为 -1
     const direction = floor > this.status.currentFloor ? 1 : -1;
 
-    /**
-     * 移动
-     */
+    // 逐层移动（模拟电梯真实移动过程）
+    // 例如：从1楼到5楼，需要经过2楼、3楼、4楼，最后到达5楼
     for (let i = 0; i < distance; i++) {
-      // 延迟
+      // 等待移动一层的时间（由 config.speed 配置）
       await this.delay(this.config.speed);
-      // 当前楼层
+
+      // 更新当前楼层
       this.status.currentFloor += direction;
 
-      // 移动中钩子
+      // 调用移动中钩子（每经过一层都会调用）
+      // 子类可以重写此方法，例如：显示经过的楼层、检测中途请求等
       await this.onMoving(this.status.currentFloor);
     }
 
-    // 到达目标楼层
+    // ==================== 第七步：到达目标楼层，更新状态 ====================
+    // 清除目标楼层（已到达）
     this.status.targetFloor = null;
+    // 取消移动标记
     this.status.isMoving = false;
+    // 设置为空闲状态
     this.status.state = ElevatorState.IDLE;
 
-    // 移动后钩子
+    // ==================== 第八步：调用移动后钩子 ====================
+    // 子类可以重写此方法，在到达后执行自定义逻辑
+    // 例如：记录访问数据、播放到达提示音等
     await this.afterMove(floor);
 
-    // 开门
+    // ==================== 第九步：开门让乘客进出 ====================
+    // 到达目标楼层后自动打开电梯门
     await this.openDoor();
+
+    // ==================== 第十步：门保持打开状态 ====================
+    // 等待一段时间，让乘客有足够时间进出电梯
+    // 等待时间由 config.doorOpenTime 配置（通常为 5000 毫秒 = 5 秒）
+    // 注意：这里使用简单的延迟，未来可以扩展为可中断的等待
+    // （例如：有人按住开门按钮、有新请求等情况）
+    await this.delay(this.config.doorOpenTime);
+
+    // ==================== 第十一步：自动关门 ====================
+    // 等待时间结束后，自动关闭电梯门
+    // 这是场景1的核心实现：基本自动关门功能
+    await this.closeDoor();
   }
 
   // 开门
@@ -178,18 +215,34 @@ export abstract class BaseElevator implements IElevator {
     this.status.state = ElevatorState.IDLE;
   }
 
-  // 关门
+  /**
+   * 关闭电梯门
+   * 门的关闭过程：
+   * 1. 检查门是否已经关闭，如果已关闭则直接返回
+   * 2. 设置门状态为"正在关闭"
+   * 3. 设置电梯状态为"关门中"
+   * 4. 等待关门时间（模拟门关闭的物理过程）
+   * 5. 设置门状态为"已关闭"
+   * 6. 恢复电梯状态为"空闲"
+   */
   async closeDoor(): Promise<void> {
+    // 如果门已经关闭，不需要重复关门
     if (this.status.doorState === DoorState.CLOSED) {
       return;
     }
 
+    // 设置门状态：正在关闭
     this.status.doorState = DoorState.CLOSING;
+    // 设置电梯状态：关门中
     this.status.state = ElevatorState.DOOR_CLOSING;
 
+    // 等待关门时间（门从打开到完全关闭的物理过程）
     await this.delay(this.config.doorTime);
 
+    // 门已完全关闭
     this.status.doorState = DoorState.CLOSED;
+    // 关门完成后，电梯恢复空闲状态（重要：这样电梯才能接受新的指令）
+    this.status.state = ElevatorState.IDLE;
   }
 
   // 停止
