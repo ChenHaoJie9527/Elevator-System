@@ -12,6 +12,27 @@ import {
   type IElevator,
 } from '../types/index.js';
 
+/**
+ * 电梯抽象基类
+ * 实现通用逻辑，展示 OOP 的封装和抽象
+ * 所有电梯类型共享基类的 `moveTo()`、`openDoor()` 等方法，避免代码重复
+ * 子类可以重写钩子方法 `beforeMove()`、`onMoving()`、`afterMove()` 来实现特定行为
+ * 延迟辅助方法 `delay()` 用于模拟电梯移动时间
+ * 验证楼层是否在有效范围内
+ * @example
+ * ```typescript
+ * const elevator = new PassengerElevator('E1', 20);
+ * await elevator.moveTo(10);
+ * ```
+ * ```typescript
+ * const elevator = new FreightElevator('F1', 15);
+ * await elevator.moveTo(5);
+ * ```
+ * ```typescript
+ * const elevator = new ScenicElevator('S1', 30, [15, 25]);
+ * await elevator.moveTo(25);
+ * ```
+ */
 export abstract class BaseElevator implements IElevator {
   protected config: ElevatorConfig;
   protected status: ElevatorStatus;
@@ -33,37 +54,59 @@ export abstract class BaseElevator implements IElevator {
   // 抽象方法：子类必须实现
   abstract getElevatorType(): string;
 
-  // 获取配置
+  /**
+   * 获取配置
+   * @returns 电梯配置
+   */
   getConfig(): ElevatorConfig {
     return { ...this.config };
   }
 
-  // 获取状态
+  /**
+   * 获取状态
+   * @returns 电梯状态
+   */
   getStatus(): ElevatorStatus {
     return { ...this.status };
   }
 
-  // 获取当前楼层
+  /**
+   * 获取当前楼层
+   * @returns 当前楼层
+   */
   getCurrentFloor(): number {
     return this.status.currentFloor;
   }
 
-  // 获取状态
+  /**
+   * 获取状态
+   * @returns 电梯状态
+   */
   getState(): ElevatorState {
     return this.status.state;
   }
 
-  // 获取容量
+  /**
+   * 获取容量
+   * @returns 电梯容量
+   */
   getCapacity(): number {
     return this.config.capacity;
   }
 
-  // 获取当前载重
+  /**
+   * 获取当前载重
+   * @returns 当前载重
+   */
   getCurrentWeight(): number {
     return this.status.currentWeight;
   }
 
-  // 移动到指定楼层
+  /**
+   * 移动到指定楼层
+   * @param floor 目标楼层
+   * @returns 移动到指定楼层的 Promise
+   */
   async moveTo(floor: number): Promise<void> {
     // 验证楼层
     if (floor < this.config.minFloor || floor > this.config.maxFloor) {
@@ -90,10 +133,18 @@ export abstract class BaseElevator implements IElevator {
 
     // 模拟移动
     const distance = Math.abs(floor - this.status.currentFloor);
+    /**
+     * 如果目标楼层大于当前楼层，方向为 1，否则为 -1
+     */
     const direction = floor > this.status.currentFloor ? 1 : -1;
 
+    /**
+     * 移动
+     */
     for (let i = 0; i < distance; i++) {
+      // 延迟
       await this.delay(this.config.speed);
+      // 当前楼层
       this.status.currentFloor += direction;
 
       // 移动中钩子

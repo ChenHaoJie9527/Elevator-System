@@ -6,6 +6,20 @@
 import type { ElevatorConfig } from '../types/index.js';
 import { BaseElevator } from './BaseElevator.js';
 
+/**
+ * 观光电梯
+ * 展示继承和特殊功能扩展
+ * 实现观光电梯的特殊功能，如切换照明、检查观景楼层等
+ * @param id 电梯ID
+ * @param maxFloor 最大楼层
+ * @param scenicFloors 观景楼层
+ * @example
+ * ```typescript
+ * const scenic = new ScenicElevator('S1', 30, [10, 15]);
+ * scenic.toggleLighting(true);
+ * scenic.isScenicFloor(10);
+ * ```
+ */
 export class ScenicElevator extends BaseElevator {
   private readonly scenicFloors: number[];
   private lightingEnabled: boolean = true;

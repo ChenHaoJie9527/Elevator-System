@@ -21,11 +21,11 @@ function App() {
 
   useEffect(() => {
     // 创建不同类型的电梯
-    const passenger = new PassengerElevator('E1', 20);
-    const freight = new FreightElevator('F1', 20);
-    const scenic = new ScenicElevator('S1', 20, [10, 15]);
-    const vip = new VIPElevator('V1', 20);
-    const smart = new SmartElevator('M1', 20);
+    const passenger = new PassengerElevator('E1', 10);
+    const freight = new FreightElevator('F1', 10);
+    const scenic = new ScenicElevator('S1', 10, [5, 10]);
+    const vip = new VIPElevator('V1', 10);
+    const smart = new SmartElevator('M1', 10);
 
     // VIP 电梯添加授权用户
     vip.addAuthorizedUser('vip001', 3);
@@ -66,7 +66,7 @@ function App() {
                     <ElevatorShaft
                       key={elevator.getConfig().id}
                       elevator={elevator}
-                      maxFloor={20}
+                      maxFloor={10}
                       minFloor={-2}
                     />
                   ))}
