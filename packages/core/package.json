@@ -15,7 +15,11 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "clean": "rimraf dist"
+    "clean": "rimraf dist",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage"
   },
   "keywords": [
     "elevator",
@@ -26,7 +30,9 @@
   "author": "Your Name",
   "license": "MIT",
   "devDependencies": {
+    "@vitest/coverage-v8": "^2.1.8",
     "typescript": "^5.9.3",
-    "rimraf": "^5.0.5"
+    "rimraf": "^5.0.5",
+    "vitest": "^2.1.8"
   }
 }
