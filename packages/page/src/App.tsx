@@ -50,7 +50,7 @@ function App() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* 左侧：控制面板 */}
           <div className="lg:col-span-1">
-            <ControlPanel controller={controller} maxFloor={20} minFloor={-2} />
+            <ControlPanel controller={controller} maxFloor={10} minFloor={-2} />
           </div>
 
           {/* 右侧：电梯井道展示 */}
