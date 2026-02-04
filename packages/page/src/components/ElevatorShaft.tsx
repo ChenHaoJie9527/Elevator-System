@@ -1,9 +1,13 @@
 import type { IElevator } from '@elevator-system/core';
 import { DoorState, ElevatorState } from '@elevator-system/core';
+import { useGSAP } from '@gsap/react';
 import { Tooltip } from 'antd';
 import clsx from 'clsx';
+import { gsap } from 'gsap';
 import { AlertCircle, ArrowDown, ArrowUp, Info } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+
+gsap.registerPlugin(useGSAP);
 
 interface ElevatorShaftProps {
   elevator: IElevator;
@@ -17,20 +21,297 @@ export function ElevatorShaft({ elevator, maxFloor, minFloor }: ElevatorShaftPro
   const [doorState, setDoorState] = useState(DoorState.CLOSED);
   const config = elevator.getConfig();
 
+  const containerRef = useRef<HTMLDivElement>(null);
+  const carRef = useRef<HTMLDivElement>(null);
+  const doorLeftRef = useRef<HTMLDivElement>(null);
+  const doorRightRef = useRef<HTMLDivElement>(null);
+  const timelineRef = useRef<gsap.core.Timeline | null>(null);
+  const doorTimelineRef = useRef<gsap.core.Timeline | null>(null);
+  const prevStatusRef = useRef(elevator.getStatus()); // 用于存储上一次的状态
+
+  // 🔑 组件挂载时强制同步一次状态
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Only run on mount
+  useEffect(() => {
+    const initialStatus = elevator.getStatus();
+    const initialPosition = (maxFloor - initialStatus.currentFloor) * 60 + 3;
+
+    console.log('🎬 组件初始化:', {
+      elevatorId: config.id,
+      initialFloor: initialStatus.currentFloor,
+      currentFloorState: currentFloor,
+      state: initialStatus.state,
+      initialPosition: `${initialPosition}px`,
+    });
+
+    // 强制同步初始楼层
+    setCurrentFloor(initialStatus.currentFloor);
+    setState(initialStatus.state);
+    setDoorState(initialStatus.doorState);
+    prevStatusRef.current = initialStatus;
+
+    // 使用 GSAP 设置初始位置（确保准确）
+    if (carRef.current) {
+      gsap.set(carRef.current, {
+        top: initialPosition,
+      });
+    }
+  }, [elevator, config.id, maxFloor]);
+
+  /**
+   * 创建门动画时间线
+   */
+  const createDoorTimeline = useCallback((isOpening: boolean) => {
+    // 清理之前的门动画
+    if (doorTimelineRef.current) {
+      doorTimelineRef.current.kill();
+    }
+
+    const tl = gsap.timeline({
+      defaults: { ease: 'power1.inOut' },
+    });
+
+    doorTimelineRef.current = tl;
+
+    if (isOpening) {
+      // 开门：左门向左，右门向右
+      tl.to([doorLeftRef.current, doorRightRef.current], {
+        x: (index) => (index === 0 ? '-100%' : '100%'),
+        duration: 0.5,
+      });
+    } else {
+      // 关门：回到中间
+      tl.to([doorLeftRef.current, doorRightRef.current], {
+        x: '0%',
+        duration: 0.5,
+      });
+    }
+
+    return tl;
+  }, []);
+
+  /**
+   * 创建电梯运动时间轴动画（全程匀速）
+   */
+  const createElevatorTimeline = useCallback(
+    (fromFloor: number, toFloor: number) => {
+      // 清理之前的时间线
+      if (timelineRef.current) {
+        timelineRef.current.kill();
+      }
+
+      const distance = Math.abs(toFloor - fromFloor);
+      const config = elevator.getConfig();
+
+      // 计算位置（从上到下的像素位置）
+      const startPos = (maxFloor - fromFloor) * 60 + 3;
+      const endPos = (maxFloor - toFloor) * 60 + 3;
+
+      // 计算总时长（全程匀速）
+      const duration = (distance * config.speed) / 1000;
+
+      // 判断方向
+      const direction = toFloor > fromFloor ? '上行 ⬆️' : toFloor < fromFloor ? '下行 ⬇️' : '同层';
+      const isMovingUp = endPos < startPos; // 像素值越小表示越往上
+
+      console.log('🎯 创建电梯动画（全程匀速）:', {
+        fromFloor,
+        toFloor,
+        direction,
+        distance,
+        maxFloor,
+        startPos: `${startPos}px`,
+        endPos: `${endPos}px`,
+        isMovingUp,
+        pixelDistance: Math.abs(endPos - startPos),
+        duration: `${duration}s`,
+      });
+
+      // 🔑 关键：强制设置初始位置
+      // 先获取当前轿厢的实际位置
+      const currentTop = carRef.current?.style.top || 'unknown';
+      const computedTop = carRef.current ? window.getComputedStyle(carRef.current).top : 'unknown';
+
+      console.log('🔧 设置初始位置:', {
+        fromFloor,
+        toFloor,
+        startPos: `${startPos}px`,
+        endPos: `${endPos}px`,
+        beforeSet: {
+          inlineStyleTop: currentTop,
+          computedTop: computedTop,
+        },
+      });
+
+      // 强制清除所有 inline style，完全由 GSAP 控制
+      if (carRef.current) {
+        carRef.current.style.top = '';
+      }
+
+      // 使用 GSAP 立即设置位置（不使用动画）
+      gsap.set(carRef.current, {
+        top: startPos,
+        clearProps: 'none', // 不清除属性，保持 GSAP 的控制
+      });
+
+      // 创建主时间轴（全程匀速运动）
+      const tl = gsap.timeline({
+        defaults: { ease: 'none' }, // 完全线性匀速
+        onStart: () => {
+          console.log(`🚀 电梯开始从 ${fromFloor}F 前往 ${toFloor}F（匀速运动）`);
+        },
+        onUpdate: function () {
+          const progress = this.progress();
+          const currentDisplay = Math.round(fromFloor + (toFloor - fromFloor) * progress);
+          setCurrentFloor(currentDisplay);
+        },
+        onComplete: () => {
+          console.log(`✅ 电梯到达 ${toFloor}F`);
+          setCurrentFloor(toFloor);
+        },
+      });
+
+      timelineRef.current = tl;
+
+      // 全程匀速运动：直接从起点到终点
+      tl.addLabel('start')
+        .to(carRef.current, {
+          top: endPos,
+          duration: duration,
+          ease: 'none', // 确保完全匀速
+        })
+        .addLabel('arrived');
+
+      return tl;
+    },
+    [elevator, maxFloor]
+  );
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: currentFloor is intentionally not in deps to avoid infinite loop
   useEffect(() => {
     const interval = setInterval(() => {
-      const status = elevator.getStatus();
-      setCurrentFloor(status.currentFloor);
-      setState(status.state);
-      setDoorState(status.doorState);
+      const newStatus = elevator.getStatus();
+      const prevStatus = prevStatusRef.current; // 🔑 使用 ref 而不是 state
+
+      // 检测运动开始：关键是使用 prevStatus.currentFloor 作为起点
+      if (
+        prevStatus.state === ElevatorState.IDLE &&
+        (newStatus.state === ElevatorState.MOVING_UP ||
+          newStatus.state === ElevatorState.MOVING_DOWN) &&
+        newStatus.targetFloor !== null
+      ) {
+        // 🔑 立即同步当前楼层（确保起始位置正确）
+        const actualStartFloor = prevStatus.currentFloor;
+        const currentFloorState = currentFloor; // 记录当前 state 中的楼层
+
+        console.log('🎬 检测到运动开始:', {
+          from: actualStartFloor,
+          to: newStatus.targetFloor,
+          currentFloorState, // 显示 state 中的楼层（可能过时）
+          prevState: prevStatus.state,
+          newState: newStatus.state,
+          direction: newStatus.targetFloor > actualStartFloor ? '上行 ⬆️' : '下行 ⬇️',
+        });
+
+        // 立即更新 currentFloor 确保位置正确
+        setCurrentFloor(actualStartFloor);
+
+        createElevatorTimeline(actualStartFloor, newStatus.targetFloor);
+      }
+
+      // 检测门状态变化
+      if (prevStatus.doorState !== newStatus.doorState) {
+        const isOpening =
+          newStatus.doorState === DoorState.OPENING || newStatus.doorState === DoorState.OPEN;
+        createDoorTimeline(isOpening);
+      }
+
+      // 🔑 立即更新 ref（确保下次循环能获取到最新值）
+      prevStatusRef.current = newStatus;
+
+      // 更新状态
+      setState(newStatus.state);
+      setDoorState(newStatus.doorState);
+
+      // 只在非运动状态时同步楼层显示
+      if (
+        newStatus.state === ElevatorState.IDLE ||
+        newStatus.state === ElevatorState.DOOR_OPENING ||
+        newStatus.state === ElevatorState.DOOR_CLOSING
+      ) {
+        setCurrentFloor(newStatus.currentFloor);
+      }
     }, 100);
 
-    return () => clearInterval(interval);
-  }, [elevator]);
+    return () => {
+      clearInterval(interval);
+      // 清理动画
+      if (timelineRef.current) {
+        timelineRef.current.kill();
+      }
+      if (doorTimelineRef.current) {
+        doorTimelineRef.current.kill();
+      }
+    };
+  }, [elevator, createElevatorTimeline, createDoorTimeline]);
+
+  // 🔑 在空闲状态下同步位置（使用 GSAP）
+  useEffect(() => {
+    if (
+      state === ElevatorState.IDLE ||
+      state === ElevatorState.DOOR_OPENING ||
+      state === ElevatorState.DOOR_CLOSING
+    ) {
+      const realFloor = prevStatusRef.current.currentFloor;
+      const correctPosition = (maxFloor - realFloor) * 60 + 3;
+
+      // 使用 GSAP 设置位置，避免与 inline style 冲突
+      if (carRef.current) {
+        gsap.set(carRef.current, {
+          top: correctPosition,
+        });
+      }
+    }
+  }, [state, maxFloor]);
+
+  useGSAP(
+    () => {
+      return () => {
+        gsap.killTweensOf(carRef.current);
+        gsap.killTweensOf([doorLeftRef.current, doorRightRef.current]);
+      };
+    },
+    { scope: containerRef }
+  );
 
   const totalFloors = maxFloor - minFloor + 1;
-  // 修复：正确计算电梯轿厢位置（从 minFloor 到 maxFloor 的相对位置）
-  const floorPosition = maxFloor - currentFloor;
+
+  // 🔑 获取实际显示的楼层（用于 UI 显示，不用于位置计算）
+  const getActualCurrentFloor = () => {
+    if (
+      state === ElevatorState.IDLE ||
+      state === ElevatorState.DOOR_OPENING ||
+      state === ElevatorState.DOOR_CLOSING
+    ) {
+      // 空闲或开关门状态：使用实时楼层
+      const realTimeFloor = prevStatusRef.current.currentFloor;
+
+      // 调试日志：只在楼层不一致时输出
+      // if (realTimeFloor !== currentFloor) {
+      //   console.log('🔧 修正楼层显示:', {
+      //     state,
+      //     currentFloorState: currentFloor,
+      //     realTimeFloor,
+      //     correction: true,
+      //   });
+      // }
+
+      return realTimeFloor;
+    }
+    // 运动状态：使用动画控制的楼层显示
+    return currentFloor;
+  };
+
+  const actualFloor = getActualCurrentFloor();
 
   const getStateIcon = () => {
     switch (state) {
@@ -59,8 +340,6 @@ export function ElevatorShaft({ elevator, maxFloor, minFloor }: ElevatorShaftPro
     }
   };
 
-  const isDoorOpen = doorState === DoorState.OPEN || doorState === DoorState.OPENING;
-
   // 格式化楼层显示：负数楼层显示为 B1, B2
   const formatFloor = (floor: number): string => {
     if (floor < 0) {
@@ -82,7 +361,7 @@ export function ElevatorShaft({ elevator, maxFloor, minFloor }: ElevatorShaftPro
       <div className="grid grid-cols-2 gap-2 pt-2 border-t border-gray-300">
         <div>
           <div className="text-gray-300">速度</div>
-          <div>{config.speed} m/s</div>
+          <div>{config.speed} ms/层</div>
         </div>
         <div>
           <div className="text-gray-300">载重</div>
@@ -100,15 +379,15 @@ export function ElevatorShaft({ elevator, maxFloor, minFloor }: ElevatorShaftPro
             {getStateText(state)}
           </div>
         </div>
-        <div className="text-gray-300">门状态：</div>
+        <div className="text-gray-300">门状态</div>
         <div>{getDoorStateText(doorState)}</div>
       </div>
     </div>
   );
 
   return (
-    <div className="flex flex-col items-center">
-      {/* 电梯信息头部 with Tooltip */}
+    <div ref={containerRef} className="flex flex-col items-center">
+      {/* 电梯信息头部 */}
       <Tooltip title={tooltipContent} placement="top">
         <div className="mb-4 text-center cursor-help">
           <div className="text-2xl mb-1">{config.icon}</div>
@@ -140,37 +419,34 @@ export function ElevatorShaft({ elevator, maxFloor, minFloor }: ElevatorShaftPro
           );
         })}
 
-        {/* 电梯轿厢 */}
+        {/* 电梯轿厢 - 完全由 GSAP 控制位置 */}
         <div
+          ref={carRef}
           className={clsx(
-            'absolute left-2 right-2 h-14 rounded-lg shadow-lg transition-all duration-300 ease-linear',
+            'absolute left-2 right-2 h-14 rounded-lg shadow-lg',
             getStateColor(),
             'flex items-center justify-center text-white font-bold'
           )}
-          style={{
-            top: `${floorPosition * 60 + 3}px`,
-          }}
+          // 不设置 inline style，完全由 GSAP 控制位置
         >
-          <div className="relative w-full h-full flex items-center justify-center">
-            {/* 门 */}
+          <div className="relative w-full h-full flex items-center justify-center overflow-hidden rounded-lg">
+            {/* 门 - 使用 ref，由 GSAP 控制 */}
             <div className="absolute inset-0 flex">
               <div
-                className={clsx(
-                  'w-1/2 h-full bg-gray-700 transition-transform duration-500',
-                  isDoorOpen ? '-translate-x-full' : 'translate-x-0'
-                )}
+                ref={doorLeftRef}
+                className="w-1/2 h-full bg-gray-700"
+                style={{ transform: 'translateX(0%)' }}
               />
               <div
-                className={clsx(
-                  'w-1/2 h-full bg-gray-700 transition-transform duration-500',
-                  isDoorOpen ? 'translate-x-full' : 'translate-x-0'
-                )}
+                ref={doorRightRef}
+                className="w-1/2 h-full bg-gray-700"
+                style={{ transform: 'translateX(0%)' }}
               />
             </div>
 
             {/* 楼层显示和状态图标 */}
             <div className="relative z-10 flex items-center gap-2">
-              <span className="text-lg">{formatFloor(currentFloor)}</span>
+              <span className="text-lg">{formatFloor(actualFloor)}</span>
               {getStateIcon()}
             </div>
           </div>
