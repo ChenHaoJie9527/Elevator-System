@@ -35,13 +35,13 @@ export function ElevatorShaft({ elevator, maxFloor, minFloor }: ElevatorShaftPro
     const initialStatus = elevator.getStatus();
     const initialPosition = (maxFloor - initialStatus.currentFloor) * 60 + 3;
 
-    console.log('🎬 组件初始化:', {
-      elevatorId: config.id,
-      initialFloor: initialStatus.currentFloor,
-      currentFloorState: currentFloor,
-      state: initialStatus.state,
-      initialPosition: `${initialPosition}px`,
-    });
+    // console.log('🎬 组件初始化:', {
+    //   elevatorId: config.id,
+    //   initialFloor: initialStatus.currentFloor,
+    //   currentFloorState: currentFloor,
+    //   state: initialStatus.state,
+    //   initialPosition: `${initialPosition}px`,
+    // });
 
     // 强制同步初始楼层
     setCurrentFloor(initialStatus.currentFloor);
@@ -186,7 +186,6 @@ export function ElevatorShaft({ elevator, maxFloor, minFloor }: ElevatorShaftPro
     [elevator, maxFloor]
   );
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: currentFloor is intentionally not in deps to avoid infinite loop
   useEffect(() => {
     const interval = setInterval(() => {
       const newStatus = elevator.getStatus();
@@ -201,16 +200,16 @@ export function ElevatorShaft({ elevator, maxFloor, minFloor }: ElevatorShaftPro
       ) {
         // 🔑 立即同步当前楼层（确保起始位置正确）
         const actualStartFloor = prevStatus.currentFloor;
-        const currentFloorState = currentFloor; // 记录当前 state 中的楼层
+        // const currentFloorState = currentFloor; // 记录当前 state 中的楼层
 
-        console.log('🎬 检测到运动开始:', {
-          from: actualStartFloor,
-          to: newStatus.targetFloor,
-          currentFloorState, // 显示 state 中的楼层（可能过时）
-          prevState: prevStatus.state,
-          newState: newStatus.state,
-          direction: newStatus.targetFloor > actualStartFloor ? '上行 ⬆️' : '下行 ⬇️',
-        });
+        // console.log('🎬 检测到运动开始:', {
+        //   from: actualStartFloor,
+        //   to: newStatus.targetFloor,
+        //   currentFloorState, // 显示 state 中的楼层（可能过时）
+        //   prevState: prevStatus.state,
+        //   newState: newStatus.state,
+        //   direction: newStatus.targetFloor > actualStartFloor ? '上行 ⬆️' : '下行 ⬇️',
+        // });
 
         // 立即更新 currentFloor 确保位置正确
         setCurrentFloor(actualStartFloor);
