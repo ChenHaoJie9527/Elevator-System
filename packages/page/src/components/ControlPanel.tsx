@@ -1,7 +1,9 @@
 import type { ElevatorController } from '@elevator-system/core';
-import { Button, Card, Select, Space, Tabs } from 'antd';
-import { Play, RotateCcw, StopCircle, Zap } from 'lucide-react';
+import { Card, Tabs } from 'antd';
+import { RotateCcw, Zap } from 'lucide-react';
 import { useState } from 'react';
+import { ControlPanelTabManual } from './ControlPanel-Tab-Manual';
+import { ControlPanelTabAuto } from './ControlPanel-Tab-Auto';
 
 interface ControlPanelProps {
   controller: ElevatorController;
@@ -87,86 +89,18 @@ export function ControlPanel({ controller, maxFloor, minFloor }: ControlPanelPro
       key: 'manual',
       label: '手动控制',
       children: (
-        <Space direction="vertical" size="large" style={{ width: '100%' }}>
-          <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-2">起始楼层</label>
-                <Select
-                  value={fromFloor}
-                  onChange={setFromFloor}
-                  options={floorOptions}
-                  disabled={isRunning}
-                  style={{ width: '100%' }}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">目标楼层</label>
-                <Select
-                  value={toFloor}
-                  onChange={setToFloor}
-                  options={floorOptions}
-                  disabled={isRunning}
-                  style={{ width: '100%' }}
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">优先级</label>
-              <Space style={{ width: '100%' }}>
-                <Button
-                  type={priority === 0 ? 'primary' : 'default'}
-                  onClick={() => setPriority(0)}
-                  disabled={isRunning}
-                  style={{ flex: 1 }}
-                >
-                  普通
-                </Button>
-                <Button
-                  type={priority === 1 ? 'primary' : 'default'}
-                  onClick={() => setPriority(1)}
-                  disabled={isRunning}
-                  danger={priority === 1}
-                  style={{ flex: 1 }}
-                >
-                  高
-                </Button>
-                <Button
-                  type={priority === 2 ? 'primary' : 'default'}
-                  onClick={() => setPriority(2)}
-                  disabled={isRunning}
-                  danger={priority === 2}
-                  style={{ flex: 1 }}
-                >
-                  紧急
-                </Button>
-              </Space>
-            </div>
-
-            <Space style={{ width: '100%' }}>
-              <Button
-                type="primary"
-                icon={<Play className="w-4 h-4" />}
-                onClick={handleCallElevator}
-                disabled={isRunning || fromFloor === toFloor}
-                loading={isRunning}
-                style={{ flex: 1 }}
-              >
-                {isRunning ? '运行中...' : '调用电梯'}
-              </Button>
-
-              <Button
-                danger
-                icon={<StopCircle className="w-4 h-4" />}
-                onClick={handleEmergencyStop}
-              >
-                紧急停止
-              </Button>
-            </Space>
-          </Space>
-        </Space>
+        <ControlPanelTabManual
+          fromFloor={fromFloor}
+          setFromFloor={setFromFloor}
+          toFloor={toFloor}
+          setToFloor={setToFloor}
+          floorOptions={floorOptions}
+          isRunning={isRunning}
+          priority={priority}
+          setPriority={setPriority}
+          handleCallElevator={handleCallElevator}
+          handleEmergencyStop={handleEmergencyStop}
+        />
       ),
     },
     {
@@ -178,71 +112,7 @@ export function ControlPanel({ controller, maxFloor, minFloor }: ControlPanelPro
         </span>
       ),
       children: (
-        <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-          <Button
-            block
-            size="large"
-            onClick={() => handleQuickScenario('morning')}
-            disabled={isRunning}
-            className="text-left"
-          >
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">🌅</span>
-              <div>
-                <div className="font-semibold">早高峰场景</div>
-                <div className="text-xs text-gray-600">多人从1楼到不同楼层</div>
-              </div>
-            </div>
-          </Button>
-
-          <Button
-            block
-            size="large"
-            onClick={() => handleQuickScenario('vip')}
-            disabled={isRunning}
-            className="text-left"
-          >
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">👑</span>
-              <div>
-                <div className="font-semibold">VIP 直达场景</div>
-                <div className="text-xs text-gray-600">高优先级快速到达</div>
-              </div>
-            </div>
-          </Button>
-
-          <Button
-            block
-            size="large"
-            onClick={() => handleQuickScenario('freight')}
-            disabled={isRunning}
-            className="text-left"
-          >
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">📦</span>
-              <div>
-                <div className="font-semibold">货物运输场景</div>
-                <div className="text-xs text-gray-600">从地下停车场运货到楼层</div>
-              </div>
-            </div>
-          </Button>
-
-          <Button
-            block
-            size="large"
-            onClick={() => handleQuickScenario('parking')}
-            disabled={isRunning}
-            className="text-left"
-          >
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">🅿️</span>
-              <div>
-                <div className="font-semibold">停车场往返场景</div>
-                <div className="text-xs text-gray-600">大堂往返地下停车场</div>
-              </div>
-            </div>
-          </Button>
-        </Space>
+        <ControlPanelTabAuto handleQuickScenario={handleQuickScenario} isRunning={isRunning} />
       ),
     },
   ];
