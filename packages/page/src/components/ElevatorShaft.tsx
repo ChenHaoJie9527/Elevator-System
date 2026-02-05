@@ -90,7 +90,7 @@ export function ElevatorShaft({ elevator, maxFloor, minFloor }: ElevatorShaftPro
   }, []);
 
   /**
-   * 创建电梯运动时间轴动画（全程匀速）
+   * 创建电梯运动时间轴动画（缓入缓出）
    */
   const createElevatorTimeline = useCallback(
     (fromFloor: number, toFloor: number) => {
@@ -113,7 +113,7 @@ export function ElevatorShaft({ elevator, maxFloor, minFloor }: ElevatorShaftPro
       const direction = toFloor > fromFloor ? '上行 ⬆️' : toFloor < fromFloor ? '下行 ⬇️' : '同层';
       const isMovingUp = endPos < startPos; // 像素值越小表示越往上
 
-      console.log('🎯 创建电梯动画（全程匀速）:', {
+      console.log('🎯 创建电梯动画（缓入缓出）:', {
         fromFloor,
         toFloor,
         direction,
@@ -124,6 +124,7 @@ export function ElevatorShaft({ elevator, maxFloor, minFloor }: ElevatorShaftPro
         isMovingUp,
         pixelDistance: Math.abs(endPos - startPos),
         duration: `${duration}s`,
+        ease: 'power2.inOut',
       });
 
       // 🔑 关键：强制设置初始位置
@@ -153,16 +154,21 @@ export function ElevatorShaft({ elevator, maxFloor, minFloor }: ElevatorShaftPro
         clearProps: 'none', // 不清除属性，保持 GSAP 的控制
       });
 
-      // 创建主时间轴（全程匀速运动）
+      // 创建主时间轴（ease-in-out 缓入缓出运动）
       const tl = gsap.timeline({
-        defaults: { ease: 'none' }, // 完全线性匀速
+        defaults: { ease: 'power2.inOut' }, // 缓入缓出：慢→快→慢
         onStart: () => {
-          console.log(`🚀 电梯开始从 ${fromFloor}F 前往 ${toFloor}F（匀速运动）`);
+          console.log(`🚀 电梯开始从 ${fromFloor}F 前往 ${toFloor}F（缓入缓出运动）`);
         },
         onUpdate: function () {
-          const progress = this.progress();
-          const currentDisplay = Math.round(fromFloor + (toFloor - fromFloor) * progress);
-          setCurrentFloor(currentDisplay);
+          // 🔑 关键：根据轿厢的实际位置计算楼层，而不是线性 progress
+          if (carRef.current) {
+            const currentTop = parseFloat(window.getComputedStyle(carRef.current).top);
+            // 根据位置反推楼层：(top - 3) / 60 = 从顶部数的楼层数
+            const floorFromTop = (currentTop - 3) / 60;
+            const currentFloor = maxFloor - floorFromTop;
+            setCurrentFloor(Math.round(currentFloor));
+          }
         },
         onComplete: () => {
           console.log(`✅ 电梯到达 ${toFloor}F`);
@@ -172,12 +178,12 @@ export function ElevatorShaft({ elevator, maxFloor, minFloor }: ElevatorShaftPro
 
       timelineRef.current = tl;
 
-      // 全程匀速运动：直接从起点到终点
+      // 缓入缓出运动：直接从起点到终点
       tl.addLabel('start')
         .to(carRef.current, {
           top: endPos,
           duration: duration,
-          ease: 'none', // 确保完全匀速
+          ease: 'power2.inOut', // 缓入缓出：开始慢→中间快→结束慢
         })
         .addLabel('arrived');
 
